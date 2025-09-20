@@ -58,6 +58,21 @@ export default {
           ring: "hsl(var(--sidebar-ring))",
         },
       },
+      backgroundImage: {
+        'gradient-cosmic': 'var(--gradient-cosmic)',
+        'gradient-ethereal': 'var(--gradient-ethereal)', 
+        'gradient-divine': 'var(--gradient-divine)',
+        'gradient-aura': 'var(--gradient-aura)',
+      },
+      boxShadow: {
+        'mystical': 'var(--shadow-mystical)',
+        'ethereal': 'var(--shadow-ethereal)',
+        'divine': 'var(--shadow-divine)',
+      },
+      transitionTimingFunction: {
+        'mystical': 'var(--transition-mystical)',
+        'ethereal': 'var(--transition-ethereal)',
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
