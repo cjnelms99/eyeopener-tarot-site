@@ -1,10 +1,13 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
+import AuthButton from "@/components/AuthButton";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   Star, 
   Moon, 
@@ -22,6 +25,75 @@ import heroImage from "@/assets/hero-cosmic-bg.jpg";
 import businessCardBack from "@/assets/business-card-back.jpeg";
 
 const Index = () => {
+  const { toast } = useToast();
+  const { user, isAdmin } = useAuth();
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    service: "",
+    message: "",
+    birthDate: "",
+    birthTime: "",
+    birthLocation: ""
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Basic validation
+    if (!formData.name || !formData.email || !formData.service) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in your name, email, and service selection.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Create WhatsApp message
+    const whatsappMessage = `New Reading Request:
+Name: ${formData.name}
+Email: ${formData.email}
+Phone: ${formData.phone}
+Service: ${formData.service}
+Birth Date: ${formData.birthDate}
+Birth Time: ${formData.birthTime}
+Birth Location: ${formData.birthLocation}
+Message: ${formData.message}`;
+
+    const encodedMessage = encodeURIComponent(whatsappMessage);
+    const whatsappUrl = `https://wa.me/18654316270?text=${encodedMessage}`;
+    
+    window.open(whatsappUrl, '_blank');
+    
+    toast({
+      title: "Message Sent!",
+      description: "Your reading request has been sent to Travis via WhatsApp.",
+      variant: "default",
+    });
+
+    // Reset form
+    setFormData({
+      name: "",
+      email: "",
+      phone: "",
+      service: "",
+      message: "",
+      birthDate: "",
+      birthTime: "",
+      birthLocation: ""
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-divine">
       {/* Navigation */}
@@ -39,7 +111,7 @@ const Index = () => {
             <a href="#pricing" className="text-muted-foreground hover:text-primary transition-mystical">Pricing</a>
             <a href="#contact" className="text-muted-foreground hover:text-primary transition-mystical">Contact</a>
           </div>
-          <Button variant="cosmic" size="sm">Book Reading</Button>
+          <AuthButton />
         </div>
       </nav>
 
@@ -60,12 +132,12 @@ const Index = () => {
             />
           </div>
           
-            <h1 className="text-4xl md:text-6xl font-bold mb-4 bg-gradient-ethereal bg-clip-text text-transparent">
-              Eyeopener
-            </h1>
-            <p className="text-xl md:text-2xl mb-4 text-muted-foreground">
-              Travis Perry - Divination, Empathic Medium, & Spiritual Advisor
-            </p>
+          <h1 className="text-4xl md:text-6xl font-bold mb-4 bg-gradient-ethereal bg-clip-text text-transparent">
+            Eyeopener
+          </h1>
+          <p className="text-xl md:text-2xl mb-4 text-muted-foreground">
+            Travis Perry - Divination, Empathic Medium, & Spiritual Advisor
+          </p>
           
           <p className="text-lg mb-8 text-foreground/80 max-w-2xl mx-auto">
             Unlock the mysteries of your path through ancient wisdom and spiritual guidance. 
@@ -92,11 +164,11 @@ const Index = () => {
           </div>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="cosmic" size="lg" className="text-lg px-8 py-4">
+            <Button variant="cosmic" size="lg" className="text-lg px-8 py-4" onClick={() => document.getElementById('contact')?.scrollIntoView()}>
               <Calendar className="w-5 h-5 mr-2" />
               Schedule Reading
             </Button>
-            <Button variant="ethereal" size="lg" className="text-lg px-8 py-4">
+            <Button variant="ethereal" size="lg" className="text-lg px-8 py-4" onClick={() => document.getElementById('services')?.scrollIntoView()}>
               <Sparkles className="w-5 h-5 mr-2" />
               Explore Services
             </Button>
@@ -322,7 +394,7 @@ const Index = () => {
                   <li>• Recorded session</li>
                   <li>• Follow-up questions</li>
                 </ul>
-                <Button variant="cosmic" className="w-full mt-6">Book Reading</Button>
+                <Button variant="cosmic" className="w-full mt-6" onClick={() => document.getElementById('contact')?.scrollIntoView()}>Book Reading</Button>
               </CardContent>
             </Card>
 
@@ -339,7 +411,7 @@ const Index = () => {
                   <li>• Transit forecasting</li>
                   <li>• Compatibility analysis</li>
                 </ul>
-                <Button variant="cosmic" className="w-full mt-6">Book Reading</Button>
+                <Button variant="cosmic" className="w-full mt-6" onClick={() => document.getElementById('contact')?.scrollIntoView()}>Book Reading</Button>
               </CardContent>
             </Card>
 
@@ -356,7 +428,7 @@ const Index = () => {
                   <li>• Energetic cleansing included</li>
                   <li>• Spiritual guidance plan</li>
                 </ul>
-                <Button variant="cosmic" className="w-full mt-6">Book Reading</Button>
+                <Button variant="cosmic" className="w-full mt-6" onClick={() => document.getElementById('contact')?.scrollIntoView()}>Book Reading</Button>
               </CardContent>
             </Card>
           </div>
@@ -377,34 +449,59 @@ const Index = () => {
 
           <Card className="shadow-mystical">
             <CardContent className="p-8">
-              <form className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Name</label>
-                    <Input placeholder="Your full name" />
+                    <label className="block text-sm font-medium mb-2">Name *</label>
+                    <Input 
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      placeholder="Your full name" 
+                      required
+                    />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Email</label>
-                    <Input type="email" placeholder="your@email.com" />
+                    <label className="block text-sm font-medium mb-2">Email *</label>
+                    <Input 
+                      name="email"
+                      type="email" 
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="your@email.com" 
+                      required
+                    />
                   </div>
                 </div>
                 
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium mb-2">Phone</label>
-                    <Input type="tel" placeholder="(555) 123-4567" />
+                    <Input 
+                      name="phone"
+                      type="tel" 
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      placeholder="(555) 123-4567" 
+                    />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Service Interest</label>
-                    <select className="w-full px-3 py-2 bg-input border border-border rounded-md">
-                      <option>Select a service</option>
-                      <option>Tarot Reading</option>
-                      <option>Astrology Chart</option>
-                      <option>Numerology</option>
-                      <option>Palmistry</option>
-                      <option>Bone Reading</option>
-                      <option>Energetic Cleansing</option>
-                      <option>Full Spiritual Reading</option>
+                    <label className="block text-sm font-medium mb-2">Service Interest *</label>
+                    <select 
+                      name="service"
+                      value={formData.service}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 bg-input border border-border rounded-md"
+                      required
+                    >
+                      <option value="">Select a service</option>
+                      <option value="Tarot Reading">Tarot Reading</option>
+                      <option value="Astrology Chart">Astrology Chart</option>
+                      <option value="Numerology">Numerology</option>
+                      <option value="Palmistry">Palmistry</option>
+                      <option value="Bone Reading">Bone Reading</option>
+                      <option value="Energetic Cleansing">Energetic Cleansing</option>
+                      <option value="Full Spiritual Reading">Full Spiritual Reading</option>
                     </select>
                   </div>
                 </div>
@@ -412,21 +509,41 @@ const Index = () => {
                 <div>
                   <label className="block text-sm font-medium mb-2">Birth Information (for Astrology)</label>
                   <div className="grid md:grid-cols-3 gap-4">
-                    <Input type="date" placeholder="Birth Date" />
-                    <Input type="time" placeholder="Birth Time" />
-                    <Input placeholder="Birth Location" />
+                    <Input 
+                      name="birthDate"
+                      type="date" 
+                      value={formData.birthDate}
+                      onChange={handleInputChange}
+                      placeholder="Birth Date" 
+                    />
+                    <Input 
+                      name="birthTime"
+                      type="time" 
+                      value={formData.birthTime}
+                      onChange={handleInputChange}
+                      placeholder="Birth Time" 
+                    />
+                    <Input 
+                      name="birthLocation"
+                      value={formData.birthLocation}
+                      onChange={handleInputChange}
+                      placeholder="Birth Location" 
+                    />
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium mb-2">Message</label>
                   <Textarea 
+                    name="message"
+                    value={formData.message}
+                    onChange={handleInputChange}
                     placeholder="Tell me about your spiritual questions or what you'd like guidance on..."
                     rows={4}
                   />
                 </div>
 
-                <Button variant="cosmic" size="lg" className="w-full">
+                <Button type="submit" variant="cosmic" size="lg" className="w-full">
                   <Mail className="w-5 h-5 mr-2" />
                   Send Message & Schedule Reading
                 </Button>
