@@ -59,7 +59,19 @@ const Admin = () => {
     user_id: '',
     reading_type: '',
     title: '',
-    content: {}
+    content: {},
+    // Tarot-specific fields
+    threeCardReading: {
+      past: { card: '', interpretation: '' },
+      present: { card: '', interpretation: '' },
+      future: { card: '', interpretation: '' }
+    },
+    thirteenCardReading: Array.from({ length: 13 }, (_, i) => ({
+      position: i + 1,
+      card: '',
+      interpretation: ''
+    })),
+    generalInterpretation: ''
   });
 
   useEffect(() => {
@@ -152,15 +164,27 @@ const Admin = () => {
 
   const createReading = async () => {
     try {
+      let readingContent = {};
+      
+      if (newReading.reading_type === 'tarot') {
+        readingContent = {
+          general_interpretation: newReading.generalInterpretation,
+          three_card_reading: newReading.threeCardReading,
+          thirteen_card_reading: newReading.thirteenCardReading.filter(card => card.card.trim() !== '')
+        };
+      } else {
+        readingContent = typeof newReading.content === 'string' 
+          ? JSON.parse(newReading.content) 
+          : newReading.content;
+      }
+
       const { error } = await supabase
         .from('readings')
         .insert([{
           user_id: newReading.user_id,
           reading_type: newReading.reading_type,
           title: newReading.title,
-          content: typeof newReading.content === 'string' 
-            ? JSON.parse(newReading.content) 
-            : newReading.content
+          content: readingContent
         }]);
 
       if (error) {
@@ -178,7 +202,18 @@ const Admin = () => {
           user_id: '',
           reading_type: '',
           title: '',
-          content: {}
+          content: {},
+          threeCardReading: {
+            past: { card: '', interpretation: '' },
+            present: { card: '', interpretation: '' },
+            future: { card: '', interpretation: '' }
+          },
+          thirteenCardReading: Array.from({ length: 13 }, (_, i) => ({
+            position: i + 1,
+            card: '',
+            interpretation: ''
+          })),
+          generalInterpretation: ''
         });
         fetchData();
       }
@@ -353,16 +388,108 @@ const Admin = () => {
                               className="bg-cosmic-dark border-cosmic-accent/30"
                             />
                           </div>
-                          <div>
-                            <Label className="text-cosmic-light">Content (JSON)</Label>
-                            <Textarea
-                              value={typeof newReading.content === 'string' ? newReading.content : JSON.stringify(newReading.content, null, 2)}
-                              onChange={(e) => setNewReading(prev => ({ ...prev, content: e.target.value }))}
-                              placeholder='{"interpretation": "Your reading content here"}'
-                              rows={6}
-                              className="bg-cosmic-dark border-cosmic-accent/30"
-                            />
-                          </div>
+                          {/* Tarot-specific fields */}
+                          {newReading.reading_type === 'tarot' ? (
+                            <div className="space-y-6">
+                              <div>
+                                <Label className="text-cosmic-light">General Interpretation</Label>
+                                <Textarea
+                                  value={newReading.generalInterpretation}
+                                  onChange={(e) => setNewReading(prev => ({ ...prev, generalInterpretation: e.target.value }))}
+                                  placeholder="Overall reading interpretation"
+                                  rows={3}
+                                  className="bg-cosmic-dark border-cosmic-accent/30"
+                                />
+                              </div>
+                              
+                              <div>
+                                <Label className="text-cosmic-light mb-3 block">3-Card Past/Present/Future Reading</Label>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                  {['past', 'present', 'future'].map((timeframe) => (
+                                    <div key={timeframe} className="space-y-2">
+                                      <Label className="text-cosmic-muted capitalize">{timeframe}</Label>
+                                      <Input
+                                        placeholder={`${timeframe} card`}
+                                        value={newReading.threeCardReading[timeframe as keyof typeof newReading.threeCardReading].card}
+                                        onChange={(e) => setNewReading(prev => ({
+                                          ...prev,
+                                          threeCardReading: {
+                                            ...prev.threeCardReading,
+                                            [timeframe]: {
+                                              ...prev.threeCardReading[timeframe as keyof typeof prev.threeCardReading],
+                                              card: e.target.value
+                                            }
+                                          }
+                                        }))}
+                                        className="bg-cosmic-dark border-cosmic-accent/30"
+                                      />
+                                      <Textarea
+                                        placeholder={`${timeframe} interpretation`}
+                                        value={newReading.threeCardReading[timeframe as keyof typeof newReading.threeCardReading].interpretation}
+                                        onChange={(e) => setNewReading(prev => ({
+                                          ...prev,
+                                          threeCardReading: {
+                                            ...prev.threeCardReading,
+                                            [timeframe]: {
+                                              ...prev.threeCardReading[timeframe as keyof typeof prev.threeCardReading],
+                                              interpretation: e.target.value
+                                            }
+                                          }
+                                        }))}
+                                        rows={2}
+                                        className="bg-cosmic-dark border-cosmic-accent/30"
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+
+                              <div>
+                                <Label className="text-cosmic-light mb-3 block">13-Card Reading</Label>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+                                  {newReading.thirteenCardReading.map((card, index) => (
+                                    <div key={index} className="space-y-2 p-3 bg-cosmic-surface/50 rounded-lg">
+                                      <Label className="text-cosmic-muted">Card #{card.position}</Label>
+                                      <Input
+                                        placeholder={`Card ${card.position}`}
+                                        value={card.card}
+                                        onChange={(e) => setNewReading(prev => ({
+                                          ...prev,
+                                          thirteenCardReading: prev.thirteenCardReading.map((c, i) => 
+                                            i === index ? { ...c, card: e.target.value } : c
+                                          )
+                                        }))}
+                                        className="bg-cosmic-dark border-cosmic-accent/30"
+                                      />
+                                      <Textarea
+                                        placeholder={`Card ${card.position} interpretation`}
+                                        value={card.interpretation}
+                                        onChange={(e) => setNewReading(prev => ({
+                                          ...prev,
+                                          thirteenCardReading: prev.thirteenCardReading.map((c, i) => 
+                                            i === index ? { ...c, interpretation: e.target.value } : c
+                                          )
+                                        }))}
+                                        rows={2}
+                                        className="bg-cosmic-dark border-cosmic-accent/30"
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <div>
+                              <Label className="text-cosmic-light">Content (JSON)</Label>
+                              <Textarea
+                                value={typeof newReading.content === 'string' ? newReading.content : JSON.stringify(newReading.content, null, 2)}
+                                onChange={(e) => setNewReading(prev => ({ ...prev, content: e.target.value }))}
+                                placeholder='{"interpretation": "Your reading content here"}'
+                                rows={6}
+                                className="bg-cosmic-dark border-cosmic-accent/30"
+                              />
+                            </div>
+                          )}
                           <Button onClick={createReading} variant="cosmic" className="w-full">
                             Create Reading
                           </Button>
