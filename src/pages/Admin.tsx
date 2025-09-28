@@ -42,7 +42,7 @@ interface Reading {
 }
 
 interface User {
-  id: string;
+  user_id: string;
   email: string;
   full_name: string;
   created_at: string;
@@ -356,7 +356,7 @@ const Admin = () => {
                               </SelectTrigger>
                               <SelectContent>
                                 {users.map((user) => (
-                                  <SelectItem key={user.id} value={user.id}>
+                                  <SelectItem key={user.user_id} value={user.user_id}>
                                     {user.full_name || user.email}
                                   </SelectItem>
                                 ))}
